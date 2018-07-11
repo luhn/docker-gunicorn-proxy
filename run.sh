@@ -9,10 +9,17 @@ upstream app_upstream {
 server {
 	listen 80;
 
+	# Forward IPs from load balancer
 	set_real_ip_from 10.0.0.0/8;
 	set_real_ip_from 172.16.0.0/12;
 	set_real_ip_from 192.168.0.0/16;
 	real_ip_header X-Forwarded-For;
+
+	# gzip
+	gzip on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_buffers 16 8k;
 
 	location / {
 		proxy_pass http://app_upstream;

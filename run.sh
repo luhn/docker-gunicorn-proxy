@@ -48,7 +48,21 @@ HEADERS=$(env | awk -F '=' '{
 	}
 }')
 
+if [ $RATE_LIMIT ]; then
+	ZONE="limit_req_zone \$binary_remote_addr zone=one:${RATE_LIMIT_SIZE:-10m} rate=${RATE_LIMIT};"
+	LIMIT="limit_req zone=one"
+	if [ $RATE_LIMIT_BURST ]; then
+		LIMIT="$LIMIT burst=$RATE_LIMIT_BURST"
+	fi
+	if [ $RATE_LIMIT_NODELAY ]; then
+		LIMIT="$LIMIT nodelay"
+	fi
+	LIMIT="$LIMIT;"
+fi
+
 cat <<EOF > /etc/nginx/conf.d/default.conf
+
+$ZONE
 
 upstream app_upstream {
 	server $SERVER max_fails=0;
@@ -64,6 +78,7 @@ server {
 	real_ip_header X-Forwarded-For;
 
 	$HEADERS
+	$LIMIT
 
 	location / {
 		proxy_pass http://app_upstream;

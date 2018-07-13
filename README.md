@@ -27,6 +27,12 @@ nginx can be configured by passing the following environment variables:
 
 * `SERVER` — The hostname of the gunicorn container.  Required.
 * `SCHEME` — `http` or `https`.  Defaults to `https`.
+* `RATE_LIMIT` — A rate limit to enforce.  e.g., `10r/s`.  Enforced per IP
+  address.  See https://nginx.org/en/docs/http/ngx_http_limit_req_module.html
+  for more details.
+* `RATE_LIMIT_SIZE` — The zone size.  Defaults to `10m`.
+* `RATE_LIMIT_BURST` — Sets the `burst` parameter.
+* `RATE_LIMIT_DELAY` — If set, sets the `nodelay` parameter.
 
 Headers can be added to the response by setting environment variables prefixed
 with `HEADER_`.  Underscores in the variable name will be replaced with

@@ -44,7 +44,8 @@ HEADERS=$(env | awk -F '=' '{
 	if(index($1, "HEADER_") > 0) {
 		name=substr($1, 8);
 		gsub("_", "-", name);
-		printf("add_header %s \"%s\";\n", name, $2)
+		st=index($0, "=");
+		printf("add_header %s \"%s\";\n", name, substr($0, st+1))
 	}
 }')
 

@@ -27,3 +27,10 @@ nginx can be configured by passing the following environment variables:
 
 * `SERVER` — The hostname of the gunicorn container.  Required.
 * `SCHEME` — `http` or `https`.  Defaults to `https`.
+
+Headers can be added to the response by setting environment variables prefixed
+with `HEADER_`.  Underscores in the variable name will be replaced with
+hyphens.  This feature is useful for setting HTTP Strict Transport Security,
+Content Security Policies, etc.  For example,
+`HEADER_STRICT_TRANSPORT_SECURITY=max-age=3153600` will result in
+`STRICT-TRANSPORT-SECURITY: max-age=3153600` in the response.

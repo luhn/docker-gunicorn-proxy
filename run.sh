@@ -40,6 +40,14 @@ http {
 }
 EOF
 
+HEADERS=$(env | awk -F '=' '{
+	if(index($1, "HEADER_") > 0) {
+		name=substr($1, 8);
+		gsub("_", "-", name);
+		printf("add_header %s \"%s\";\n", name, $2)
+	}
+}')
+
 cat <<EOF > /etc/nginx/conf.d/default.conf
 
 upstream app_upstream {
@@ -54,6 +62,8 @@ server {
 	set_real_ip_from 172.16.0.0/12;
 	set_real_ip_from 192.168.0.0/16;
 	real_ip_header X-Forwarded-For;
+
+	$HEADERS
 
 	location / {
 		proxy_pass http://app_upstream;

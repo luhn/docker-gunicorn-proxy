@@ -28,7 +28,7 @@ http {
 			'"user_agent": "\$http_user_agent", '
 			'"referer": "\$http_referer"}';
 
-	access_log /var/log/nginx/access.log main;
+	access_log ${SYSLOG_SERVER:-/var/log/nginx/access.log} main;
 
 	sendfile on;
 	keepalive_timeout 65;

@@ -20,8 +20,11 @@ http {
 	log_format main escape=json '{"ip": "\$remote_addr", '
 			'"method": "\$request_method", '
 			'"uri": "\$request_uri", '
-			'"status": \$status, '
-			'"processing_time": \$upstream_response_time, '
+			'"status": "\$status", '
+			'"processing_time": "\$upstream_response_time", '
+			'"response_time": \$request_time, '
+			'"request_size": \$request_length, '
+			'"time": "\$time_iso8601", '
 			'"user_agent": "\$http_user_agent", '
 			'"referer": "\$http_referer"}';
 

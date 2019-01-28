@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ $SYSLOG_SERVER ]; then
+	LOG_TARGET=syslog:server=$SYSLOG_SERVER
+else
+	LOG_TARGET=/var/log/nginx/access.log
+fi
+
 cat <<EOF > /etc/nginx/nginx.conf
 user nginx;
 worker_processes 1;
@@ -28,7 +34,7 @@ http {
 			'"user_agent": "\$http_user_agent", '
 			'"referer": "\$http_referer"}';
 
-	access_log ${SYSLOG_SERVER:-/var/log/nginx/access.log} main;
+	access_log $LOG_TARGET main;
 
 	sendfile on;
 	keepalive_timeout 65;

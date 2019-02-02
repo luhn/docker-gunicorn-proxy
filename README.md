@@ -17,6 +17,7 @@ The proxy is configured via environment variables.
 * `QUEUE_TIMEOUT` — How long requests will wait for a gunicorn worker before
   timing out.  Can be a number in milliseconds or suffixed with `s`, `m`, etc.
   Defaults to three seconds.
+* `SCHEME` — If set, will set the `X-Forwarded-Proto` header.
 * `HEALTHCHECK_PATH` — The path for the healthcheck endpoint.  Defaults to
   `/healthcheck`.
 

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ $SCHEME ]; then
+	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
+fi
+
 cat <<EOF > /usr/local/etc/haproxy/haproxy.cfg
 
 global
@@ -20,6 +24,7 @@ frontend http
 
 backend app
 	server main $SERVER maxconn $CONCURRENCY
+	$SCHEME_LINE
 
 backend healthcheck
 	server main $SERVER

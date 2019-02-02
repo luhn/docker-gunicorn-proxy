@@ -13,6 +13,11 @@ HEADERS=$(env | awk -F '=' '{
 	}
 }')
 
+COMPRESSION="
+compression algo gzip
+compression type text/html text/plain application/json
+"
+
 cat <<EOF > /usr/local/etc/haproxy/haproxy.cfg
 
 global
@@ -33,6 +38,7 @@ frontend http
 
 backend app
 	server main $SERVER maxconn $CONCURRENCY
+	$COMPRESSION
 	$SCHEME_LINE
 	$HEADERS
 

@@ -14,10 +14,15 @@ defaults
 
 frontend http
 	bind *:80
+	acl is_healthcheck path ${HEALTHCHECK_PATH:-/healthcheck}
+	use_backend healthcheck if is_healthcheck
 	default_backend app
 
 backend app
 	server main $SERVER maxconn $CONCURRENCY
+
+backend healthcheck
+	server main $SERVER
 
 EOF
 

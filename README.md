@@ -21,6 +21,13 @@ The proxy is configured via environment variables.
 * `HEALTHCHECK_PATH` — The path for the healthcheck endpoint.  Defaults to
   `/healthcheck`.
 
+Headers can be added to the response by setting environment variables prefixed
+with `HEADER_`.  Underscores in the variable name will be replaced with
+hyphens.  This feature is useful for setting HTTP Strict Transport Security,
+Content Security Policies, etc.  For example,
+`HEADER_STRICT_TRANSPORT_SECURITY=max-age=3153600` will result in
+`STRICT-TRANSPORT-SECURITY: max-age=3153600` in the response.
+
 ## Healthchecks
 
 Requests matching `HEALTHCHECK_PATH` skip the queue.  This allows healthchecks

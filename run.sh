@@ -4,6 +4,15 @@ if [ $SCHEME ]; then
 	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
 fi
 
+HEADERS=$(env | awk -F '=' '{
+	if(index($1, "HEADER_") > 0) {
+		name=substr($1, 8);
+		gsub("_", "-", name);
+		st=index($0, "=");
+		printf("http-response set-header %s \"%s\"\n", name, substr($0, st+1))
+	}
+}')
+
 cat <<EOF > /usr/local/etc/haproxy/haproxy.cfg
 
 global
@@ -25,6 +34,7 @@ frontend http
 backend app
 	server main $SERVER maxconn $CONCURRENCY
 	$SCHEME_LINE
+	$HEADERS
 
 backend healthcheck
 	server main $SERVER

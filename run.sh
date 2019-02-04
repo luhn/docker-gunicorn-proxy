@@ -32,6 +32,8 @@ defaults
 
 frontend http
 	bind *:80
+	log ${SYSLOG_SERVER:-127.0.0.1} local0
+	log-format "%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"
 	acl is_healthcheck path ${HEALTHCHECK_PATH:-/healthcheck}
 	use_backend healthcheck if is_healthcheck
 	default_backend app

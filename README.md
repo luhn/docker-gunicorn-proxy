@@ -14,6 +14,8 @@ The proxy is configured via environment variables.
 * `SERVER` — The hostname of the gunicorn container.  Required.
 * `CONCURRENCY` — Should match the number of gunicorn workers or threads.
   Required.
+* `SYSLOG_SERVER` — A syslog server to output logs to.  Defaults to
+  `localhost`.
 * `QUEUE_TIMEOUT` — How long requests will wait for a gunicorn worker before
   timing out.  Can be a number in milliseconds or suffixed with `s`, `m`, etc.
   Defaults to three seconds.
@@ -33,3 +35,24 @@ Content Security Policies, etc.  For example,
 Requests matching `HEALTHCHECK_PATH` skip the queue.  This allows healthchecks
 to continue succeeding even when the proxy is load shedding, as long as
 gunicorn is still processing requests.
+
+## Logging
+
+Technically `SYSLOG_SERVER` is not required, as by default logs will be routed
+to localhost.  However, this probably won't be particularly useful because the
+logs will be lost to the void unless you're running in Docker's host network
+mode.  The standard Docker practice of stdout unfortunately isn't achievable
+with HAProxy without running syslog in the container.
+
+HAProxy's default log format is overridden and set to:
+
+```
+%HM %HU %ST %TR/%Tw/%Tr/%Ta %U
+```
+
+This translates to:
+
+```
+[verb] [path+query] [status] [read time]/[queue time]/[processing time]/[total time] [request size]
+```
+

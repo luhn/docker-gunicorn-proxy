@@ -39,7 +39,7 @@ frontend http
 	default_backend app
 
 backend app
-	server main $SERVER maxconn $CONCURRENCY
+	server main $SERVER maxconn ${CONCURRENCY:-1}
 	$COMPRESSION
 	$SCHEME_LINE
 	$HEADERS

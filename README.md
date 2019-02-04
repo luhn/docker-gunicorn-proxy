@@ -1,19 +1,36 @@
 # docker-gunicorn-proxy
 
-An reverse proxy to put in front of a gunicorn, configured via environment
-variables.
+It is highly recommended to put a reverse proxy in front of Gunicorn.  This
+project provides a turnkey reverse proxy for gunicorn in a Docker environment.
 
-The proxy will queue requests and return a 503 if they've queued too long.
-This load shedding allows the server to continue to serve some requests within
-a reasonable time during periods of high load.
+The Gunicorn docs recommend nginx, but this project use HAProxy for the more
+robust proxy features.  Notably, HAProxy offers request queuing, which we use
+for load shedding during times of excessive load.  (nginx does have queuing
+functionality, but it's only available in the commercial version.)
+
+## Getting Started
+
+This project is available from Docker Hub as
+[luhn/gunicorn-proxy:0.2](https://hub.docker.com/r/luhn/gunicorn-proxy).
+
+Get your gunicorn running in a container.  Then run this project, using the
+`SERVER` environment variable to point it at your gunicorn container.  For
+example, this might look like:
+
+```bash
+docker run --link gunicorn -e "SERVER=gunicorn:8080" -e "CONCURRENCY=4" luhn/gunicorn-proxy
+```
+
+Set `CONCURRENCY` to the number of gunicorn workers you have.
 
 ## Configuration
 
 The proxy is configured via environment variables.
 
 * `SERVER` — The hostname of the gunicorn container.  Required.
-* `CONCURRENCY` — Should match the number of gunicorn workers or threads.
-  Required.
+* `CONCURRENCY` — The number of concurrent requests to allow through to
+  gunicorn.  It's recommended to set this equal to the number of gunicorn
+  workers.
 * `SYSLOG_SERVER` — A syslog server to output logs to.  Defaults to
   `localhost`.
 * `QUEUE_TIMEOUT` — How long requests will wait for a gunicorn worker before
@@ -29,6 +46,12 @@ hyphens.  This feature is useful for setting HTTP Strict Transport Security,
 Content Security Policies, etc.  For example,
 `HEADER_STRICT_TRANSPORT_SECURITY=max-age=3153600` will result in
 `STRICT-TRANSPORT-SECURITY: max-age=3153600` in the response.
+
+## Queuing
+
+The proxy will queue requests and return a 503 if they've queued too long.
+This load shedding allows the server to continue to serve some requests within
+a reasonable time during periods of excessive load.
 
 ## Healthchecks
 

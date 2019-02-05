@@ -32,6 +32,8 @@ defaults
 
 frontend http
 	bind *:80
+	option http-buffer-request
+	timeout http-request 10s
 	log ${SYSLOG_SERVER:-127.0.0.1} local0
 	log-format "%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"
 	acl is_healthcheck path ${HEALTHCHECK_PATH:-/healthcheck}

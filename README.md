@@ -1,27 +1,32 @@
-# docker-gunicorn-proxy
+# gunicorn-proxy
 
-It is highly recommended to put a reverse proxy in front of Gunicorn.  This
-project provides a turnkey reverse proxy for gunicorn in a Docker environment.
+`gunicorn-proxy` is a turnkey reverse proxy for gunicorn in a Docker
+environment.
 
-The Gunicorn docs recommend nginx, but this project use HAProxy for the more
-robust proxy features.  Notably, HAProxy offers request queuing, which we use
-for load shedding during times of excessive load.  (nginx does have queuing
-functionality, but it's only available in the commercial version.)
+As well as being simple to set up, this has the additional benefit of load
+shedding.  Under high load, the proxy will return 503 errors for a portion of
+requests.  This allows the application to maintain acceptable response times
+for some requests and fail quickly for others.  The proxy also allows health
+checks to skip the queue, so health checks will continue to succeed as long as
+the application continues to serve requests.
+
+Although this project is entitled `gunicorn-proxy`, there are few
+gunicorn-specific features and this will most likely be effective for any
+HTTP-speaking application server.
 
 ## Getting Started
 
 This project is available from Docker Hub as
 [luhn/gunicorn-proxy:0.2](https://hub.docker.com/r/luhn/gunicorn-proxy).
 
-Get your gunicorn running in a container.  Then run this project, using the
-`SERVER` environment variable to point it at your gunicorn container.  For
-example, this might look like:
+Get your gunicorn running in a container.  Then run this project, setting the
+`SERVER` environment variable to the hostname and port of your application and
+`CONCURRENCY` to the number of workers running.  For example, this might look
+like:
 
 ```bash
 docker run --link gunicorn -e "SERVER=gunicorn:8080" -e "CONCURRENCY=4" luhn/gunicorn-proxy
 ```
-
-Set `CONCURRENCY` to the number of gunicorn workers you have.
 
 ## Configuration
 

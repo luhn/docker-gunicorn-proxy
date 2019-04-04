@@ -21,7 +21,7 @@ compression type text/html text/plain application/json
 cat <<EOF > /usr/local/etc/haproxy/haproxy.cfg
 
 global
-	maxconn 256
+	maxconn ${MAX_CONNECTIONS:-2000}
 
 defaults
 	mode http

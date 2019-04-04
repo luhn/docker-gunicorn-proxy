@@ -31,6 +31,8 @@ The proxy is configured via environment variables.
 * `CONCURRENCY` — The number of concurrent requests to allow through to
   gunicorn.  It's recommended to set this equal to the number of gunicorn
   workers.
+* `MAX_CONNECTIONS` — The number of simultaneous connections HAProxy will
+  accept.  Defaults to 2000.
 * `SYSLOG_SERVER` — A syslog server to output logs to.  Defaults to
   `localhost`.
 * `QUEUE_TIMEOUT` — How long requests will wait for a gunicorn worker before
@@ -53,11 +55,15 @@ The proxy will queue requests and return a 503 if they've queued too long.
 This load shedding allows the server to continue to serve some requests within
 a reasonable time during periods of excessive load.
 
-## Healthchecks
-
 Requests matching `HEALTHCHECK_PATH` skip the queue.  This allows healthchecks
 to continue succeeding even when the proxy is load shedding, as long as
 gunicorn is still processing requests.
+
+`MAX_CONNECTIONS` should be set to a number greater than `QUEUE_TIMEOUT`
+multiplied by the maximum number requests per second your application can
+serve.  Otherwise HAProxy may start rejecting new connections before the queue
+fills up, negating the benefits of having one.  `MAX_CONNECTIONS` defaults to
+2000, which should be great enough for most applications.
 
 ## Logging
 

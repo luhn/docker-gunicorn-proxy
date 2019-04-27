@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+if [ -z "$1" ]; then
+	echo "The server argument must be set."
+	exit 1
+fi
+
 if [ $SCHEME ]; then
 	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
 fi

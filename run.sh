@@ -57,4 +57,5 @@ backend healthcheck
 
 EOF
 
+rsyslogd
 haproxy -f /usr/local/etc/haproxy/haproxy.cfg

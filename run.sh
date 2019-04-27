@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 if [ $SCHEME ]; then
 	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
@@ -41,13 +42,13 @@ frontend http
 	default_backend app
 
 backend app
-	server main $SERVER maxconn ${CONCURRENCY:-1}
+	server main $1 maxconn ${2:-1}
 	$COMPRESSION
 	$SCHEME_LINE
 	$HEADERS
 
 backend healthcheck
-	server main $SERVER
+	server main $1
 
 EOF
 

@@ -17,25 +17,23 @@ HTTP-speaking application server.
 ## Getting Started
 
 This project is available from Docker Hub as
-[luhn/gunicorn-proxy:0.2](https://hub.docker.com/r/luhn/gunicorn-proxy).
+[luhn/gunicorn-proxy:0.3](https://hub.docker.com/r/luhn/gunicorn-proxy).
 
-Get your gunicorn running in a container.  Then run this project, setting the
-`SERVER` environment variable to the hostname and port of your application and
-`CONCURRENCY` to the number of workers running.  For example, this might look
-like:
+Running this container requires two arguments.  The first is the hostname and
+port of your gunicorn container.  The second is how many requests should be
+proxied concurrently to gunicorn.  This is best set to the number of gunicorn
+workers.
+
+For example, the docker command might look like this:
 
 ```bash
-docker run --link gunicorn -e "SERVER=gunicorn:8080" -e "CONCURRENCY=4" luhn/gunicorn-proxy
+docker run --link gunicorn luhn/gunicorn-proxy gunicorn:8080 3
 ```
 
 ## Configuration
 
 The proxy is configured via environment variables.
 
-* `SERVER` — The hostname of the gunicorn container.  Required.
-* `CONCURRENCY` — The number of concurrent requests to allow through to
-  gunicorn.  It's recommended to set this equal to the number of gunicorn
-  workers.
 * `MAX_CONNECTIONS` — The number of simultaneous connections HAProxy will
   accept.  Defaults to 2000.
 * `SYSLOG_SERVER` — A syslog server to output logs to.  Defaults to

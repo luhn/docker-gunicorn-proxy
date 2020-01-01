@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  haproxy:
+    build: .
+    command: ["gunicorn:8000", "1"]
+    links:
+      - gunicorn
+    ports:
+      - "8080:80"
+
+  gunicorn:
+    build: sampleapp

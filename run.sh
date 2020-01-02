@@ -68,8 +68,8 @@ frontend http
 	bind *:8000 $BINDPARAM
 	option http-buffer-request
 	timeout http-request 10s
-	log ${SYSLOG_SERVER:-127.0.0.1} local0
-	log-format "%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"
+	log ${LOG_ADDRESS:-stdout} local0
+	log-format "${LOG_FORMAT:-"%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"}"
 	acl is_healthcheck path ${HEALTHCHECK_PATH:-/healthcheck}
 	use_backend healthcheck if is_healthcheck
 	default_backend app
@@ -84,5 +84,6 @@ backend healthcheck
 	server main $1
 
 EOF
+cat haproxy.cfg
 
 haproxy -f haproxy.cfg

@@ -38,8 +38,8 @@ The proxy is configured via environment variables.
 
 * `MAX_CONNECTIONS` — The number of simultaneous connections HAProxy will
   accept.  Defaults to 2000.
-* `SYSLOG_SERVER` — A syslog server to output logs to.  Defaults to
-  `localhost`.
+* `LOG_ADDRESS` — Where to output logs, defaults to stdout.
+* `LOG_FORMAT` — The log format to use.
 * `QUEUE_TIMEOUT` — How long requests will wait for a gunicorn worker before
   timing out.  Can be a number in milliseconds or suffixed with `s`, `m`, etc.
   Defaults to three seconds.
@@ -84,13 +84,8 @@ backends; they claim that data sent over a VPC cannot be spoofed or MITM'd.
 
 ## Logging
 
-Technically `SYSLOG_SERVER` is not required, as by default logs will be routed
-to localhost.  However, this probably won't be particularly useful because the
-logs will be lost to the void unless you're running in Docker's host network
-mode.  The standard Docker practice of stdout unfortunately isn't achievable
-with HAProxy without running syslog in the container.
-
-HAProxy's default log format is overridden and set to:
+By default, gunicorn-haproxy will output per-request logs to stdout.  HAProxy's
+default log format is overridden and set to:
 
 ```
 %HM %HU %ST %TR/%Tw/%Tr/%Ta %U
@@ -102,3 +97,7 @@ This translates to:
 [verb] [path+query] [status] [read time]/[queue time]/[processing time]/[total time] [request size]
 ```
 
+You can set your own log format via `LOG_FORMAT`.
+
+You can route logs to a syslog server by setting `LOG_ADDRESS`.  If you'd like
+to disable request logging, set `LOG_ADDRESS` to `localhost`.

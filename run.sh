@@ -16,12 +16,12 @@ if [ $AUTO_SSL ]; then
 		-sha256 \
 		-days 3650 \
 		-nodes \
-		-out /ssl.crt \
-		-keyout /ssl.key \
+		-out ssl.crt \
+		-keyout ssl.key \
 		-subj "/CN=$(hostname)"
-	cat /ssl.crt /ssl.key > /ssl.pem
+	cat ssl.crt ssl.key > ssl.pem
 	rm ssl.crt ssl.key
-	SSL="/ssl.pem"
+	SSL="ssl.pem"
 fi
 
 if [ $SSL ]; then
@@ -42,7 +42,7 @@ compression algo gzip
 compression type text/html text/plain application/json
 "
 
-cat <<EOF > /usr/local/etc/haproxy/haproxy.cfg
+cat <<EOF > haproxy.cfg
 
 global
 	maxconn ${MAX_CONNECTIONS:-2000}
@@ -65,7 +65,7 @@ defaults
 	timeout queue ${QUEUE_TIMEOUT:-3s}
 
 frontend http
-	bind *:80 $BINDPARAM
+	bind *:8000 $BINDPARAM
 	option http-buffer-request
 	timeout http-request 10s
 	log ${SYSLOG_SERVER:-127.0.0.1} local0
@@ -85,4 +85,4 @@ backend healthcheck
 
 EOF
 
-haproxy -f /usr/local/etc/haproxy/haproxy.cfg
+haproxy -f haproxy.cfg

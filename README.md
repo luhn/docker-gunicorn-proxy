@@ -24,10 +24,12 @@ port of your gunicorn container.  The second is how many requests should be
 proxied concurrently to gunicorn.  This is best set to the number of gunicorn
 workers.
 
+Upon launching, the configure will configure and start HAProxy on port 8000.
+
 For example, the docker command might look like this:
 
 ```bash
-docker run --link gunicorn luhn/gunicorn-proxy gunicorn:8080 3
+docker run -p 8000:8000 --link gunicorn luhn/gunicorn-proxy gunicorn:8080 3
 ```
 
 ## Configuration

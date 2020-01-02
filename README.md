@@ -1,7 +1,8 @@
 # gunicorn-proxy
 
 `gunicorn-proxy` is a turnkey reverse proxy for gunicorn in a Docker
-environment.
+environment.  Configuration is done via environment variables, making it very
+easy to use in a containerized environment.
 
 As well as being simple to set up, this has the additional benefit of load
 shedding.  Under high load, the proxy will return 503 errors for a portion of
@@ -10,7 +11,7 @@ for some requests and fail quickly for others.  The proxy also allows health
 checks to skip the queue, so health checks will continue to succeed as long as
 the application continues to serve requests.
 
-Although this project is entitled `gunicorn-proxy`, there are few
+Although this project is entitled `gunicorn-proxy`, there are no
 gunicorn-specific features and this will most likely be effective for any
 HTTP-speaking application server.
 
@@ -38,8 +39,6 @@ The proxy is configured via environment variables.
 
 * `MAX_CONNECTIONS` — The number of simultaneous connections HAProxy will
   accept.  Defaults to 2000.
-* `LOG_ADDRESS` — Where to output logs, defaults to stdout.
-* `LOG_FORMAT` — The log format to use.
 * `QUEUE_TIMEOUT` — How long requests will wait for a gunicorn worker before
   timing out.  Can be a number in milliseconds or suffixed with `s`, `m`, etc.
   Defaults to three seconds.
@@ -48,6 +47,8 @@ The proxy is configured via environment variables.
 * `AUTO_SSL` — If set, HAProxy will generate a self-signed SSL certificate.
 * `HEALTHCHECK_PATH` — The path for the healthcheck endpoint.  Defaults to
   `/healthcheck`.
+* `LOG_ADDRESS` — Where to output logs, defaults to stdout.
+* `LOG_FORMAT` — The log format to use.
 
 Headers can be added to the response by setting environment variables prefixed
 with `HEADER_`.  Underscores in the variable name will be replaced with
@@ -74,13 +75,15 @@ fills up, negating the benefits of having one.  `MAX_CONNECTIONS` defaults to
 
 ## SSL
 
-If `SSL` is set, HAProxy will serve content over HTTPS.  `SSL` should be a path
-to a PEM file containing the public and private keys.
+If `SSL` is set, HAProxy will serve content over HTTPS.  The configuration is
+taken from the
+[Mozilla SSL Configuration Generator](https://ssl-config.mozilla.org/#server=haproxy&server-version=2.1.0&config=intermediate).
+`SSL` should be a path to a PEM file containing the public and private keys.
 
 If `AUTO_SSL` is set, a self-signed certificate will be generated.  This can be
 useful if your container is behind another load balancer, such as AWS
 Application Load Balancer.  ALB does not validate the certificate on the
-backends; they claim that data sent over a VPC cannot be spoofed or MITM'd.
+backends; AWS claims that data sent over a VPC cannot be spoofed or MITM'd.
 
 ## Logging
 

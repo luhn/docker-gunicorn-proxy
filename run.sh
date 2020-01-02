@@ -28,6 +28,13 @@ if [ $SSL ]; then
 	BINDPARAM="ssl crt $SSL alpn h2,http/1.1"
 fi
 
+if [ $LOG_ADDRESS ]; then
+	LOG="
+	log ${LOG_ADDRESS:-stdout} local0
+	log-format \"${LOG_FORMAT:-"%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"}\"
+	"
+fi
+
 HEADERS=$(env | awk -F '=' '{
 	if(index($1, "HEADER_") > 0) {
 		name=substr($1, 8);
@@ -68,11 +75,10 @@ frontend http
 	bind *:8000 $BINDPARAM
 	option http-buffer-request
 	timeout http-request 10s
-	log ${LOG_ADDRESS:-stdout} local0
-	log-format "${LOG_FORMAT:-"%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"}"
 	acl is_healthcheck path ${HEALTHCHECK_PATH:-/healthcheck}
 	use_backend healthcheck if is_healthcheck
 	default_backend app
+	$LOG
 
 backend app
 	server main $1 maxconn ${2:-1}
@@ -84,6 +90,5 @@ backend healthcheck
 	server main $1
 
 EOF
-cat haproxy.cfg
 
 haproxy -f haproxy.cfg

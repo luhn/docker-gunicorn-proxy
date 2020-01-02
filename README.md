@@ -84,8 +84,9 @@ backends; they claim that data sent over a VPC cannot be spoofed or MITM'd.
 
 ## Logging
 
-By default, gunicorn-haproxy will output per-request logs to stdout.  HAProxy's
-default log format is overridden and set to:
+You can enable per-request logging by setting `LOG_ADDRESS` to `stdout`,
+`stderr`, or a syslog server.  HAProxy's default log format is overridden and
+set to:
 
 ```
 %HM %HU %ST %TR/%Tw/%Tr/%Ta %U
@@ -98,6 +99,3 @@ This translates to:
 ```
 
 You can set your own log format via `LOG_FORMAT`.
-
-You can route logs to a syslog server by setting `LOG_ADDRESS`.  If you'd like
-to disable request logging, set `LOG_ADDRESS` to `localhost`.

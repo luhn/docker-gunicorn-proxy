@@ -10,7 +10,7 @@ if [ $SCHEME ]; then
 	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
 fi
 
-if [ $SSL ]; then
+if [ $AUTO_SSL ]; then
 	openssl req -newkey rsa:2048 \
 		-x509 \
 		-sha256 \
@@ -20,7 +20,12 @@ if [ $SSL ]; then
 		-keyout /ssl.key \
 		-subj "/CN=$(hostname)"
 	cat /ssl.crt /ssl.key > /ssl.pem
-	BINDPARAMS="ssl crt /ssl.pem"
+	rm ssl.crt ssl.key
+	SSL="/ssl.pem"
+fi
+
+if [ $SSL ]; then
+	BINDPARAM="ssl crt $SSL alpn h2,http/1.1"
 fi
 
 HEADERS=$(env | awk -F '=' '{
@@ -43,6 +48,15 @@ global
 	maxconn ${MAX_CONNECTIONS:-2000}
 	tune.ssl.default-dh-param 2048
 
+	# generated 2020-01-02, https://ssl-config.mozilla.org/#server=haproxy&server-version=2.1.0&config=intermediate
+	ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+	ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+	ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+	ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+	ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+	ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
 defaults
 	mode http
 	timeout connect 5s
@@ -51,7 +65,7 @@ defaults
 	timeout queue ${QUEUE_TIMEOUT:-3s}
 
 frontend http
-	bind *:80 $BINDPARAMS
+	bind *:80 $BINDPARAM
 	option http-buffer-request
 	timeout http-request 10s
 	log ${SYSLOG_SERVER:-127.0.0.1} local0

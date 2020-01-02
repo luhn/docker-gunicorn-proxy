@@ -42,6 +42,8 @@ The proxy is configured via environment variables.
   timing out.  Can be a number in milliseconds or suffixed with `s`, `m`, etc.
   Defaults to three seconds.
 * `SCHEME` — If set, will set the `X-Forwarded-Proto` header.
+* `SSL` — A path to a PEM file.  If set, HAProxy will use SSL.
+* `AUTO_SSL` — If set, HAProxy will generate a self-signed SSL certificate.
 * `HEALTHCHECK_PATH` — The path for the healthcheck endpoint.  Defaults to
   `/healthcheck`.
 
@@ -67,6 +69,16 @@ multiplied by the maximum number requests per second your application can
 serve.  Otherwise HAProxy may start rejecting new connections before the queue
 fills up, negating the benefits of having one.  `MAX_CONNECTIONS` defaults to
 2000, which should be great enough for most applications.
+
+## SSL
+
+If `SSL` is set, HAProxy will serve content over HTTPS.  `SSL` should be a path
+to a PEM file containing the public and private keys.
+
+If `AUTO_SSL` is set, a self-signed certificate will be generated.  This can be
+useful if your container is behind another load balancer, such as AWS
+Application Load Balancer.  ALB does not validate the certificate on the
+backends; they claim that data sent over a VPC cannot be spoofed or MITM'd.
 
 ## Logging
 

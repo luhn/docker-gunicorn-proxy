@@ -10,6 +10,19 @@ if [ $SCHEME ]; then
 	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
 fi
 
+if [ $SSL ]; then
+	openssl req -newkey rsa:2048 \
+		-x509 \
+		-sha256 \
+		-days 3650 \
+		-nodes \
+		-out /ssl.crt \
+		-keyout /ssl.key \
+		-subj "/CN=$(hostname)"
+	cat /ssl.crt /ssl.key > /ssl.pem
+	BINDPARAMS="ssl crt /ssl.pem"
+fi
+
 HEADERS=$(env | awk -F '=' '{
 	if(index($1, "HEADER_") > 0) {
 		name=substr($1, 8);
@@ -28,6 +41,7 @@ cat <<EOF > /usr/local/etc/haproxy/haproxy.cfg
 
 global
 	maxconn ${MAX_CONNECTIONS:-2000}
+	tune.ssl.default-dh-param 2048
 
 defaults
 	mode http
@@ -37,7 +51,7 @@ defaults
 	timeout queue ${QUEUE_TIMEOUT:-3s}
 
 frontend http
-	bind *:80
+	bind *:80 $BINDPARAMS
 	option http-buffer-request
 	timeout http-request 10s
 	log ${SYSLOG_SERVER:-127.0.0.1} local0

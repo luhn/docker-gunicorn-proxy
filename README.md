@@ -18,7 +18,7 @@ HTTP-speaking application server.
 ## Getting Started
 
 This project is available from Docker Hub as
-[luhn/gunicorn-proxy:0.3](https://hub.docker.com/r/luhn/gunicorn-proxy).
+[luhn/gunicorn-proxy:0.4](https://hub.docker.com/r/luhn/gunicorn-proxy).
 
 Running this container requires two arguments.  The first is the hostname and
 port of your gunicorn container.  The second is how many requests should be

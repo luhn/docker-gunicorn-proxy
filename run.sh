@@ -21,7 +21,7 @@ pid /var/run/nginx.pid;
 
 
 events {
-	worker_connections  1024;
+	worker_connections ${MAX_CONNECTIONS:-10000};
 }
 
 
@@ -56,7 +56,7 @@ http {
 EOF
 
 if [ $SCHEME ]; then
-	SCHEME_LINE="proxy_set_header X-Forwarded-Proto ${SCHEME:-https};"
+	SCHEME_LINE="proxy_set_header X-Forwarded-Proto $SCHEME;"
 fi
 
 HEADERS=$(env | awk -F '=' '{
@@ -128,6 +128,10 @@ server {
 	set_real_ip_from 172.16.0.0/12;
 	set_real_ip_from 192.168.0.0/16;
 	real_ip_header X-Forwarded-For;
+
+	client_max_body_size ${MAX_BODY_SIZE:-1m};
+	client_body_timeout 5s;
+	client_header_timeout 5s;
 
 	$HEADERS
 	$LIMIT

@@ -6,10 +6,12 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-if [ $LOG_ADDRESS ]; then
-	LOG_TARGET=syslog:server=$LOG_ADDRESS
+if [ "$LOG" = "stdout" ]; then
+	LOG_LINE="access_log /var/log/nginx/access.log main;"
+elif [ $LOG ]; then
+	LOG_LINE="access_log $LOG main;"
 else
-	LOG_TARGET=/var/log/nginx/access.log
+	LOG_LINE="access_log off;"
 fi
 
 cat <<EOF > /etc/nginx/nginx.conf
@@ -36,11 +38,8 @@ http {
 			'"processing_time": \$upstream_response_time, '
 			'"response_time": \$request_time, '
 			'"request_size": \$request_length, '
-			'"time": "\$time_iso8601", '
-			'"user_agent": "\$http_user_agent", '
-			'"referer": "\$http_referer"}';
-
-	access_log $LOG_TARGET main;
+			'"time": "\$time_iso8601"}';
+	$LOG_LINE
 
 	sendfile on;
 	keepalive_timeout 65;

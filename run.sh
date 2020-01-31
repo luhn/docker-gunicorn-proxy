@@ -14,46 +14,6 @@ else
 	LOG_LINE="access_log off;"
 fi
 
-cat <<EOF > /etc/nginx/nginx.conf
-user nginx;
-worker_processes 1;
-
-error_log  /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-
-events {
-	worker_connections ${MAX_CONNECTIONS:-10000};
-}
-
-
-http {
-	include /etc/nginx/mime.types;
-	default_type application/octet-stream;
-
-	log_format main escape=json '{"ip": "\$remote_addr", '
-			'"method": "\$request_method", '
-			'"uri": "\$request_uri", '
-			'"status": "\$status", '
-			'"processing_time": \$upstream_response_time, '
-			'"response_time": \$request_time, '
-			'"request_size": \$request_length, '
-			'"time": "\$time_iso8601"}';
-	$LOG_LINE
-
-	sendfile on;
-	keepalive_timeout 65;
-
-	# gzip
-	gzip on;
-	gzip_proxied any;
-	gzip_comp_level 6;
-	gzip_buffers 16 8k;
-
-	include /etc/nginx/conf.d/*.conf;
-}
-EOF
-
 if [ $SCHEME ]; then
 	SCHEME_LINE="proxy_set_header X-Forwarded-Proto $SCHEME;"
 fi
@@ -111,16 +71,44 @@ else
 	BIND="listen 8000;"
 fi
 
-cat <<EOF > /etc/nginx/conf.d/default.conf
+cat <<EOF > /etc/nginx/nginx.conf
+user nginx;
+worker_processes 1;
 
-$ZONE
+error_log  /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
 
-upstream app_upstream {
-	server $1 max_fails=0;
+
+events {
+	worker_connections ${MAX_CONNECTIONS:-10000};
 }
 
-server {
-	$BIND
+http {
+	include /etc/nginx/mime.types;
+	default_type application/octet-stream;
+
+	log_format main escape=json '{"ip": "\$remote_addr", '
+			'"method": "\$request_method", '
+			'"uri": "\$request_uri", '
+			'"status": "\$status", '
+			'"processing_time": \$upstream_response_time, '
+			'"response_time": \$request_time, '
+			'"request_size": \$request_length, '
+			'"time": "\$time_iso8601"}';
+	$LOG_LINE
+
+	sendfile on;
+	keepalive_timeout 65;
+
+	# gzip
+	gzip on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_buffers 16 8k;
+
+	# Rate limiting
+	$ZONE
+	$LIMIT
 
 	# Forward IPs from load balancer
 	set_real_ip_from 10.0.0.0/8;
@@ -128,22 +116,28 @@ server {
 	set_real_ip_from 192.168.0.0/16;
 	real_ip_header X-Forwarded-For;
 
+	# Limits for clients sending requests.
 	client_max_body_size ${MAX_BODY_SIZE:-1m};
 	client_body_timeout 5s;
 	client_header_timeout 5s;
 
-	$HEADERS
-	$LIMIT
+	upstream app_upstream {
+		server $1 max_fails=0;
+	}
 
-	location / {
-		proxy_pass http://app_upstream;
-		proxy_redirect off;
-		proxy_set_header Host \$http_host;
-		proxy_set_header X-Forwarded-Proto ${SCHEME:-https};
-		$SCHEME_LINE
+	server {
+		$BIND
+		$HEADERS
+
+		location / {
+			proxy_pass http://app_upstream;
+			proxy_redirect off;
+			proxy_set_header Host \$http_host;
+			proxy_set_header X-Forwarded-Proto ${SCHEME:-https};
+			$SCHEME_LINE
+		}
 	}
 }
-
 EOF
 
 exec nginx -g 'daemon off;'

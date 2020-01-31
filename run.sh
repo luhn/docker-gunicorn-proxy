@@ -6,8 +6,78 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+if [ $LOG_ADDRESS ]; then
+	LOG_TARGET=syslog:server=$LOG_ADDRESS
+else
+	LOG_TARGET=/var/log/nginx/access.log
+fi
+
+cat <<EOF > /etc/nginx/nginx.conf
+user nginx;
+worker_processes 1;
+
+error_log  /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+
+events {
+	worker_connections  1024;
+}
+
+
+http {
+	include /etc/nginx/mime.types;
+	default_type application/octet-stream;
+
+	log_format main escape=json '{"ip": "\$remote_addr", '
+			'"method": "\$request_method", '
+			'"uri": "\$request_uri", '
+			'"status": "\$status", '
+			'"processing_time": \$upstream_response_time, '
+			'"response_time": \$request_time, '
+			'"request_size": \$request_length, '
+			'"time": "\$time_iso8601", '
+			'"user_agent": "\$http_user_agent", '
+			'"referer": "\$http_referer"}';
+
+	access_log $LOG_TARGET main;
+
+	sendfile on;
+	keepalive_timeout 65;
+
+	# gzip
+	gzip on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_buffers 16 8k;
+
+	include /etc/nginx/conf.d/*.conf;
+}
+EOF
+
 if [ $SCHEME ]; then
-	SCHEME_LINE="http-request set-header X-Forwarded-Proto ${SCHEME:-https}"
+	SCHEME_LINE="proxy_set_header X-Forwarded-Proto ${SCHEME:-https};"
+fi
+
+HEADERS=$(env | awk -F '=' '{
+	if(index($1, "HEADER_") > 0) {
+		name=substr($1, 8);
+		gsub("_", "-", name);
+		st=index($0, "=");
+		printf("add_header %s \"%s\";\n", name, substr($0, st+1))
+	}
+}')
+
+if [ $RATE_LIMIT ]; then
+	ZONE="limit_req_zone \$binary_remote_addr zone=one:${RATE_LIMIT_SIZE:-10m} rate=${RATE_LIMIT};"
+	LIMIT="limit_req zone=one"
+	if [ $RATE_LIMIT_BURST ]; then
+		LIMIT="$LIMIT burst=$RATE_LIMIT_BURST"
+	fi
+	if [ $RATE_LIMIT_NODELAY ]; then
+		LIMIT="$LIMIT nodelay"
+	fi
+	LIMIT="$LIMIT;"
 fi
 
 if [ $AUTO_SSL ]; then
@@ -19,76 +89,62 @@ if [ $AUTO_SSL ]; then
 		-out ssl.crt \
 		-keyout ssl.key \
 		-subj "/CN=$(hostname)"
-	cat ssl.crt ssl.key > ssl.pem
-	rm ssl.crt ssl.key
-	SSL="ssl.pem"
+	SSL_KEY=ssl.key
+	SSL_CRT=ssl.crt
 fi
 
-if [ $SSL ]; then
-	BINDPARAM="ssl crt $SSL alpn h2,http/1.1"
-fi
+if [ $SSL_KEY ]; then
+	BIND="listen 8000 ssl http2;
+	ssl_certificate $SSL_CRT;
+	ssl_certificate_key $SSL_KEY;
+	ssl_session_timeout 1d;
+	ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+	ssl_session_tickets off;
 
-if [ $LOG_ADDRESS ]; then
-	LOG="
-	log ${LOG_ADDRESS:-stdout} local0
-	log-format \"${LOG_FORMAT:-"%HM %HU %ST %TR/%Tw/%Tr/%Ta %U"}\"
+	ssl_dhparam /app/dhparam.pem;
+
+	# intermediate configuration
+	ssl_protocols TLSv1.2 TLSv1.3;
+	ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+	ssl_prefer_server_ciphers off;
+
+	# OCSP stapling
+	ssl_stapling on;
+	ssl_stapling_verify on;
 	"
+else
+	BIND="listen 8000;"
 fi
 
-HEADERS=$(env | awk -F '=' '{
-	if(index($1, "HEADER_") > 0) {
-		name=substr($1, 8);
-		gsub("_", "-", name);
-		st=index($0, "=");
-		printf("http-response set-header %s \"%s\"\n", name, substr($0, st+1))
-	}
-}')
+cat <<EOF > /etc/nginx/conf.d/default.conf
 
-COMPRESSION="
-compression algo gzip
-compression type text/html text/plain application/json
-"
+$ZONE
 
-cat <<EOF > haproxy.cfg
+upstream app_upstream {
+	server $1 max_fails=0;
+}
 
-global
-	maxconn ${MAX_CONNECTIONS:-2000}
-	tune.ssl.default-dh-param 2048
+server {
+	$BIND
 
-	# generated 2020-01-02, https://ssl-config.mozilla.org/#server=haproxy&server-version=2.1.0&config=intermediate
-	ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
-	ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-	ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+	# Forward IPs from load balancer
+	set_real_ip_from 10.0.0.0/8;
+	set_real_ip_from 172.16.0.0/12;
+	set_real_ip_from 192.168.0.0/16;
+	real_ip_header X-Forwarded-For;
 
-	ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
-	ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-	ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
-
-defaults
-	mode http
-	timeout connect 5s
-	timeout client 30s
-	timeout server 30s
-	timeout queue ${QUEUE_TIMEOUT:-3s}
-
-frontend http
-	bind *:8000 $BINDPARAM
-	option http-buffer-request
-	timeout http-request 10s
-	acl is_healthcheck path ${HEALTHCHECK_PATH:-/healthcheck}
-	use_backend healthcheck if is_healthcheck
-	default_backend app
-	$LOG
-
-backend app
-	server main $1 maxconn ${2:-1}
-	$COMPRESSION
-	$SCHEME_LINE
 	$HEADERS
+	$LIMIT
 
-backend healthcheck
-	server main $1
+	location / {
+		proxy_pass http://app_upstream;
+		proxy_redirect off;
+		proxy_set_header Host \$http_host;
+		proxy_set_header X-Forwarded-Proto ${SCHEME:-https};
+		$SCHEME_LINE
+	}
+}
 
 EOF
 
-haproxy -f haproxy.cfg
+exec nginx -g 'daemon off;'

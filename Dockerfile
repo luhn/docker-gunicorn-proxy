@@ -1,12 +1,7 @@
-FROM haproxy:2.1
+FROM nginx:1.17
 
-RUN apt-get update && \
-	apt-get install -y openssl && \
-	rm -rf /var/lib/apt/lists/*
-
-RUN useradd --create-home --home /haproxy haproxy
-USER haproxy
-WORKDIR /haproxy
+ADD https://ssl-config.mozilla.org/ffdhe2048.txt /app/dhparam.pem
+WORKDIR /app
 EXPOSE 8000
 
 COPY run.sh /

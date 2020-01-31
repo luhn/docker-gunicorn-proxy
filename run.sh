@@ -89,8 +89,8 @@ if [ $AUTO_SSL ]; then
 		-out ssl.crt \
 		-keyout ssl.key \
 		-subj "/CN=$(hostname)"
-	SSL_KEY=ssl.key
-	SSL_CRT=ssl.crt
+	SSL_KEY=/app/ssl.key
+	SSL_CRT=/app/ssl.crt
 fi
 
 if [ $SSL_KEY ]; then
@@ -107,10 +107,6 @@ if [ $SSL_KEY ]; then
 	ssl_protocols TLSv1.2 TLSv1.3;
 	ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
 	ssl_prefer_server_ciphers off;
-
-	# OCSP stapling
-	ssl_stapling on;
-	ssl_stapling_verify on;
 	"
 else
 	BIND="listen 8000;"

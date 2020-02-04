@@ -26,8 +26,10 @@ docker run -p 8000:8000 --link gunicorn luhn/gunicorn-proxy gunicorn:8080
 
 The proxy is configured via environment variables.
 
-* `MAX_CONNECTIONS` — The number of simultaneous connections HAProxy will accept.
+* `MAX_CONNECTIONS` — The maximum number of simultaneous connections.
   Defaults to 10000.
+* `MAX_BODY_SIZE` — The maximum size of the request body.
+  Defaults to `1m`.
 * `SCHEME` — If set, will set the `X-Forwarded-Proto` header.
 * `SSL_KEY` — A path to an SSL key file.
   If set, SSL will be used.
@@ -36,7 +38,6 @@ The proxy is configured via environment variables.
 * `AUTO_SSL` — If set, a self-signed SSL certificate will be generated and used.
 * `LOG_ADDRESS` — A location to write request logs to.
   See below for further documentation on logging.
-* `LOG_FORMAT` — The log format to use.
 
 Headers can be added to the response by setting environment variables prefixed with `HEADER_`.
 Underscores in the variable name will be replaced with hyphens.

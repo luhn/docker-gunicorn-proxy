@@ -91,9 +91,9 @@ http {
 			'"method": "\$request_method", '
 			'"uri": "\$request_uri", '
 			'"status": "\$status", '
-			'"processing_time": \$upstream_response_time, '
-			'"response_time": \$request_time, '
-			'"request_size": \$request_length, '
+			'"processing_time": "\$upstream_response_time", '
+			'"response_time": "\$request_time", '
+			'"request_size": "\$request_length", '
 			'"time": "\$time_iso8601"}';
 	$LOG_LINE
 

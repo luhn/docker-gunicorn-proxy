@@ -129,6 +129,9 @@ http {
 		$BIND
 		$HEADERS
 
+		proxy_connect_timeout 5s;
+		# proxy_send_timeout 5s;
+
 		location / {
 			proxy_pass http://app_upstream;
 			proxy_redirect off;

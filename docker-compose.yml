@@ -8,6 +8,8 @@ services:
       - gunicorn
     ports:
       - "8080:8000"
+    environment:
+      - LOG=/var/log/nginx/access.log
 
   gunicorn:
     build: sampleapp

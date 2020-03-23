@@ -36,7 +36,7 @@ The proxy is configured via environment variables.
 * `SSL_CRT` — A path to an SSL certificate.
   Must be set if `SSL_KEY` is set.
 * `AUTO_SSL` — If set, a self-signed SSL certificate will be generated and used.
-* `LOG_ADDRESS` — A location to write request logs to.
+* `LOG` — A location to write request logs to.
   See below for further documentation on logging.
 
 Headers can be added to the response by setting environment variables prefixed with `HEADER_`.

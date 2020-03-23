@@ -11,7 +11,7 @@ Although this project is entitled `gunicorn-proxy`, there are no gunicorn-specif
 
 ## Getting Started
 
-This project is available from Docker Hub as [luhn/gunicorn-proxy:0.4](https://hub.docker.com/r/luhn/gunicorn-proxy).
+This project is available from Docker Hub as [luhn/gunicorn-proxy:0.5](https://hub.docker.com/r/luhn/gunicorn-proxy).
 
 Running this container requires a single argument:  The hostname and port of your application server.
 The container will run a reverse proxy on port 8000 and forward all requests to your application server.

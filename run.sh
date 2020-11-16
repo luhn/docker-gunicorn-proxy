@@ -99,6 +99,7 @@ http {
 
 	sendfile on;
 	keepalive_timeout 65;
+	server_tokens off;
 
 	# gzip
 	gzip on;

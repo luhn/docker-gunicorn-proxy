@@ -101,11 +101,45 @@ http {
 	keepalive_timeout 65;
 	server_tokens off;
 
-	# gzip
+	# gzip settings
+	# Taken from https://github.com/h5bp/server-configs-nginx/blob/main/h5bp/web_performance/compression.conf
 	gzip on;
+	gzip_comp_level 5;
+	gzip_min_length 256;
 	gzip_proxied any;
-	gzip_comp_level 6;
-	gzip_buffers 16 8k;
+	gzip_vary on;
+	gzip_types
+		application/atom+xml
+		application/geo+json
+		application/javascript
+		application/x-javascript
+		application/json
+		application/ld+json
+		application/manifest+json
+		application/rdf+xml
+		application/rss+xml
+		application/vnd.ms-fontobject
+		application/wasm
+		application/x-web-app-manifest+json
+		application/xhtml+xml
+		application/xml
+		font/eot
+		font/otf
+		font/ttf
+		image/bmp
+		image/svg+xml
+		text/cache-manifest
+		text/calendar
+		text/css
+		text/javascript
+		text/markdown
+		text/plain
+		text/xml
+		text/vcard
+		text/vnd.rim.location.xloc
+		text/vtt
+		text/x-component
+		text/x-cross-domain-policy;
 
 	# Rate limiting
 	$ZONE

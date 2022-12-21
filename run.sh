@@ -53,9 +53,15 @@ if [ $AUTO_SSL ]; then
 fi
 
 if [ $SSL_KEY ]; then
+  if [ $SSL_PASSWORD_FILE ]; then
+    PASSWORD_FILE="ssl_password_file $SSL_PASSWORD_FILE;"
+  else
+    PASSWORD_FILE=""
+  fi
 	BIND="listen 8000 ssl http2;
 	ssl_certificate $SSL_CRT;
 	ssl_certificate_key $SSL_KEY;
+	$PASSWORD_FILE
 	ssl_session_timeout 1d;
 	ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
 	ssl_session_tickets off;

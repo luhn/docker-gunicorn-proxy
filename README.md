@@ -36,6 +36,7 @@ The proxy is configured via environment variables.
   If set, SSL will be used.
 * `SSL_CRT` — A path to an SSL certificate.
   Must be set if `SSL_KEY` is set.
+* `SSL_PASSWORD_FILE` - A path to a password file used for validating certificate.
 * `AUTO_SSL` — If set, a self-signed SSL certificate will be generated and used.
 * `LOG` — A location to write request logs to.
   See below for further documentation on logging.

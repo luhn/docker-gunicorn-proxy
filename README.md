@@ -13,6 +13,7 @@ Although this project is entitled `gunicorn-proxy`, there are no gunicorn-specif
 
 This project is available from Docker Hub as [luhn/gunicorn-proxy:0.5](https://hub.docker.com/r/luhn/gunicorn-proxy)
 and AWS ECR as [public.ecr.aws/luhn/gunicorn-proxy:0.5](https://gallery.ecr.aws/luhn/gunicorn-proxy).
+You can download the source code from [github.com/luhn/docker-gunicorn-proxy](https://github.com/luhn/docker-gunicorn-proxy/).
 
 Running this container requires a single argument:  The hostname and port of your application server.
 The container will run a reverse proxy on port 8000 and forward all requests to your application server.

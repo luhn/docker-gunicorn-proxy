@@ -71,5 +71,3 @@ Request logs are outputted as JSON objects with the following fields:
 * `request_time` — The time in seconds to process the request from start to finish.
 * `request_size` — The size in bytes of the request.
 * `time` — The request time in ISO 8601 format.
-
-All field values are strings.

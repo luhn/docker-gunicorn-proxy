@@ -61,13 +61,12 @@ ALB does not validate the certificate on the backends; AWS claims that data sent
 You can enable per-request logging by setting `LOG` to `stdout` or a file path.
 You can also send logs to a syslog server with `syslog:server=address`.  ([docs](https://nginx.org/en/docs/syslog.html))
 
-Request logs are outputted as JSON objects with the following fields:
+Logs are formatted with nginx's built-in "combined" form, which is in the form:
 
-* `ip` — The IP address of the client.
-* `method` — The request method.
-* `uri` — The request URI, including query parameters.
-* `status` — The HTTP status of the response.
-* `processing_time` — The time in seconds that gunicorn took to response.
-* `request_time` — The time in seconds to process the request from start to finish.
-* `request_size` — The size in bytes of the request.
-* `time` — The request time in ISO 8601 format.
+```
+$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"
+```
+
+You can customize the log format by setting the `LOG_FORMAT` variable.
+See [the docs](https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format) for more details.
+If you want to format the logs as JSON, you can escape the log values by setting `LOG_FORMAT_ESCAPE` to `json`.

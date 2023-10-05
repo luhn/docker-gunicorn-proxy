@@ -6,10 +6,18 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+if [ "$LOG_FORMAT" ]; then
+	LOG_FORMAT_NAME="main"
+	LOG_FORMAT_LINE="log_format main escape=${LOG_FORMAT_ESCAPE:-default} '$LOG_FORMAT';"
+else
+	LOG_FORMAT_NAME="combined"
+	LOG_FORMAT_LINE=""
+fi
+
 if [ "$LOG" = "stdout" ]; then
-	LOG_LINE="access_log /var/log/nginx/access.log main;"
-elif [ $LOG ]; then
-	LOG_LINE="access_log $LOG main;"
+	LOG_LINE="access_log /var/log/nginx/access.log $LOG_FORMAT_NAME;"
+elif [ "$LOG" ]; then
+	LOG_LINE="access_log $LOG $LOG_FORMAT_NAME;"
 else
 	LOG_LINE="access_log off;"
 fi
@@ -93,14 +101,7 @@ http {
 	include /etc/nginx/mime.types;
 	default_type application/octet-stream;
 
-	log_format main escape=json '{"ip": "\$remote_addr", '
-			'"method": "\$request_method", '
-			'"uri": "\$request_uri", '
-			'"status": "\$status", '
-			'"processing_time": \$upstream_response_time, '
-			'"response_time": \$request_time, '
-			'"request_size": \$request_length, '
-			'"time": "\$time_iso8601"}';
+	$LOG_FORMAT_LINE
 	$LOG_LINE
 
 	sendfile on;

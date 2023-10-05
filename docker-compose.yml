@@ -9,7 +9,9 @@ services:
     ports:
       - "8080:8000"
     environment:
-      - LOG=/var/log/nginx/access.log
+      LOG: stdout
+      LOG_FORMAT: '{"uri": "$$request_uri", "request_size": $$request_length}'
+      LOG_FORMAT_ESCAPE: json
 
   gunicorn:
     build: sampleapp
